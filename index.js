@@ -102,7 +102,7 @@ client.on('message', async (message) => {
         const chat = await message.getChat()
 
         // Set up prompt.
-        let prompt = "The following is a conversation between " + myName + " and " + contactName + ". " + myName + " is a 33 year old man. He is helpful, creative, clever, and friendly.\n\n"
+        let prompt = "The following is a platonic conversation between " + myName + " and " + contactName + ". " + myName + " is a 33 year old man. He is helpful, creative, clever, and friendly.\n\n"
 
         // Pre-train via prompt.
         prompt += contactName + ": How are you?\n"
@@ -111,11 +111,14 @@ client.on('message', async (message) => {
         prompt += contactName + ": Good, what are you doing?\n"
         prompt += myName + ": Just working on my computer\n"
 
+        prompt += contactName + ": Do you like me?\n"
+        prompt += myName + ": Sure, I think you're a great friend.\n"
+
         prompt += contactName + ': How much does the earth weigh?\n'
         prompt += myName + ': The earth weighs 13,170,000,000,000,000,000,000,000 pounds\n'
 
         // Loop through last 10 messages of history.
-        const history = await chat.fetchMessages({ limit: 10 })
+        const history = await chat.fetchMessages({ limit: 6 })
         history.forEach(function (item, index) {
             // Get author name
             const name = item.from == message.from ? contactName : myName
