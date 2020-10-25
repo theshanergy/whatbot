@@ -18,16 +18,22 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 let selectedContacts = []
 
 // Instantiate new WhatsApp client.
-const client = new Client({ session: sessionCfg })
+const client = new Client({ session: sessionCfg, restartOnAuthFail: true })
 
 // On QR code.
 client.on('qr', (qr) => {
+    console.clear()
+    console.log('\n1. Open WhatsApp on your phone\n2. Tap Menu or Settings and select WhatsApp Web\n3. Point your phone to this screen to capture the code\n')
+
+    // Display QR code.
     qrcode.generate(qr, { small: true })
 })
 
 // On authentication.
 client.on('authenticated', (session) => {
-    console.log('Authentication successful.')
+    console.log('Authentication successful.\n')
+
+    // Set current session and write to file.
     sessionCfg = session
     fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
         if (err) {
@@ -43,7 +49,7 @@ client.on('auth_failure', message => {
 
 // On client ready.
 client.on('ready', async () => {
-    console.log('Client is ready!')
+    console.log('Client is ready!\n')
 
     // Choose enabled contacts.
     chooseContacts()
@@ -67,11 +73,18 @@ const chooseContacts = () => {
                     name: 'contacts',
                     message: 'Select contacts',
                     choices: contactChoices,
+                    validate: function (answer) {
+                        if (answer.length < 1) {
+                            return 'You must choose at least one contact.'
+                        }
+                        return true
+                    },
                 },
             ])
             .then(answers => {
                 // Set selected contacts array.
                 selectedContacts = answers.contacts
+                console.log('\nAI activated. Listening for messages...\n')
             })
             .catch(error => {
                 console.error('PROMPT FAILURE', error)
@@ -164,3 +177,8 @@ client.on('message', async (message) => {
 
 // Initialize WhatsApp client.
 client.initialize()
+
+// Handle graceful shutdown.
+process.on('SIGINT', function () {
+    process.exit()
+})
