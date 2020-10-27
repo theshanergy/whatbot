@@ -3,6 +3,7 @@ require('dotenv').config()
 const fs = require('fs')
 const axios = require('axios')
 const inquirer = require('inquirer')
+const chalk = require('chalk')
 
 const { Client } = require('whatsapp-web.js')
 const qrcode = require('qrcode-terminal')
@@ -168,7 +169,7 @@ client.on('message', async (message) => {
                 // Send reply.
                 client.sendMessage(message.from, responseText)
                 // Log reply.
-                console.log(myName + ': ', responseText)
+                console.log(myName + ': ', chalk.blueBright(responseText))
             })
             .catch((error) => console.error('GPT-3 REQUEST FAILURE', error))
 

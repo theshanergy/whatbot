@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.20.0",
+    "chalk": "^4.1.0",
     "dotenv": "^8.2.0",
     "inquirer": "^7.3.3",
     "qrcode-terminal": "^0.12.0",
