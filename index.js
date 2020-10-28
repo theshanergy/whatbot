@@ -15,11 +15,17 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
     sessionCfg = require(SESSION_FILE_PATH)
 }
 
+// Set up default prompt. credit: https://gist.github.com/mayfer/3c358fe638607531750582f9bad21d78
+let defaultPrompt = "I am a person who perceives the world without prejudice or bias. Fully neutral and objective, I see reality as it actually is and can easily draw accurate conclusions about advanced topics and human society in general."
+
 // Create array of selected contacts.
 let selectedContacts = []
 
 // Instantiate new WhatsApp client.
 const client = new Client({ session: sessionCfg, restartOnAuthFail: true })
+
+// Log authenticating
+console.log('Authenticating...\n')
 
 // On QR code.
 client.on('qr', (qr) => {
@@ -52,12 +58,6 @@ client.on('auth_failure', message => {
 client.on('ready', async () => {
     console.log('Client is ready!\n')
 
-    // Choose enabled contacts.
-    chooseContacts()
-})
-
-// Prompt user to select active contacts.
-const chooseContacts = () => {
     // Get list of current chat instances.
     client.getChats().then((chats) => {
         let contactChoices = []
@@ -70,9 +70,15 @@ const chooseContacts = () => {
         inquirer
             .prompt([
                 {
+                    name: 'prompt',
+                    message: 'Define your AI personality (press enter for default):',
+                    default: defaultPrompt,
+                    suffix: '\n'
+                },
+                {
                     type: 'checkbox',
                     name: 'contacts',
-                    message: 'Select contacts',
+                    message: 'Select contacts:',
                     choices: contactChoices,
                     validate: function (answer) {
                         if (answer.length < 1) {
@@ -83,6 +89,8 @@ const chooseContacts = () => {
                 },
             ])
             .then(answers => {
+                // Set AI prompt.
+                defaultPrompt = answers.prompt
                 // Set selected contacts array.
                 selectedContacts = answers.contacts
                 console.log('\nAI activated. Listening for messages...\n')
@@ -90,9 +98,8 @@ const chooseContacts = () => {
             .catch(error => {
                 console.error('PROMPT FAILURE', error)
             })
-
     })
-}
+})
 
 // On message received.
 client.on('message', async (message) => {
@@ -100,8 +107,8 @@ client.on('message', async (message) => {
     // If AI is enabled for this contact.
     if (selectedContacts.includes(message.from)) {
 
-        // Set my name.
-        const myName = client.info.pushname
+        // Set my name (first name only).
+        const myName = client.info.pushname.replace(/ .*/, '')
 
         // Get contact.
         const contact = await message.getContact()
@@ -115,27 +122,14 @@ client.on('message', async (message) => {
         // Get Chat.
         const chat = await message.getChat()
 
-        // Set up prompt.
-        let prompt = "The following is a platonic conversation between " + myName + " and " + contactName + ". " + myName + " is a 33 year old man. He is helpful, creative, clever, and friendly.\n\n"
-
-        // Pre-train via prompt.
-        prompt += contactName + ": How are you?\n"
-        prompt += myName + ": I'm good, how are you?\n"
-
-        prompt += contactName + ": Good, what are you doing?\n"
-        prompt += myName + ": Just working on my computer\n"
-
-        prompt += contactName + ": Do you like me?\n"
-        prompt += myName + ": Sure, I think you're a great friend.\n"
-
-        prompt += contactName + ': How much does the earth weigh?\n'
-        prompt += myName + ': The earth weighs 13,170,000,000,000,000,000,000,000 pounds\n'
+        // Set prompt.
+        let prompt = defaultPrompt + " Below are some of my conversations with my friend " + contactName + '.\n\n'
 
         // Loop through last 10 messages of history.
         const history = await chat.fetchMessages({ limit: 6 })
         history.forEach(function (item, index) {
             // Get author name
-            const name = item.from == message.from ? contactName : myName
+            const name = item.from == message.from ? contactName : 'Me (' + myName + ')'
             // Add to prompt.
             if (!prompt.includes(item.body)) {
                 prompt += name + ': ' + item.body + '\n'
@@ -143,7 +137,7 @@ client.on('message', async (message) => {
         })
 
         // Finalize prompt.
-        prompt += myName + ':'
+        prompt += 'Me (' + myName + '):'
 
         // Set typing state.
         chat.sendStateTyping()
@@ -152,10 +146,9 @@ client.on('message', async (message) => {
         axios
             .post('https://api.openai.com/v1/engines/davinci/completions', {
                 prompt: prompt,
-                temperature: 0.6,
+                temperature: 0.85,
                 max_tokens: 100,
                 top_p: 1,
-                frequency_penalty: 0.5,
                 presence_penalty: 0.6,
                 stop: '\n',
             }, {
