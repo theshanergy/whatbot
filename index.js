@@ -16,7 +16,7 @@ if (fs.existsSync(SESSION_FILE_PATH)) {
 }
 
 // Set up default prompt. credit: https://gist.github.com/mayfer/3c358fe638607531750582f9bad21d78
-let defaultPrompt = "I am a person who perceives the world without prejudice or bias. Fully neutral and objective, I see reality as it actually is and can easily draw accurate conclusions about advanced topics and human society in general."
+let defaultPrompt = process.env.DEFAULT_PROMPT ? process.env.DEFAULT_PROMPT : "I am a person who perceives the world without prejudice or bias. Fully neutral and objective, I see reality as it actually is and can easily draw accurate conclusions about advanced topics and human society in general."
 
 // Create array of selected contacts.
 let selectedContacts = []
@@ -162,7 +162,7 @@ client.on('message', async (message) => {
                 // Send reply.
                 client.sendMessage(message.from, responseText)
                 // Log reply.
-                console.log(myName + ': ', chalk.blueBright(responseText))
+                console.log(myName + ':', chalk.blueBright(responseText))
             })
             .catch((error) => console.error('GPT-3 REQUEST FAILURE', error))
 
