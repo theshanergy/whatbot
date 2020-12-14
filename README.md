@@ -22,11 +22,23 @@ git clone https://github.com/theshanergy/whatbot.git
 ```sh
 npm install
 ```
-3. Create an .env file containing your API keys as follows:
+3. Create an .env file containing your OpenAI secret API key as follows:
 ```sh
-OPENAI_KEY="<Publishable key>"
 OPENAI_SECRET_KEY="<Secret key>"
 ```
+4. Optionally set a default prompt in your .env file to give your bot a different personality:
+```sh
+DEFAULT_PROMPT="<Your custom prompt here>"
+```
+
+
+## Example Prompts
+
+Prompts should be written in the first person and are used to define your bots personality and ego. ie:
+
+> My name is Albert Einstein. I am a theoretical physicist who developed the theory of relativity.
+
+The more detail you offer in your prompt, the better your responses will be.
 
 
 ## Usage
