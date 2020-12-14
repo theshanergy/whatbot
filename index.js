@@ -8,6 +8,12 @@ const chalk = require('chalk')
 const { Client } = require('whatsapp-web.js')
 const qrcode = require('qrcode-terminal')
 
+// Check for API keys.
+if (!process.env.OPENAI_SECRET_KEY) {
+    console.error(chalk.red('MISSING API KEY'), 'Please create an .env file that includes a variable named OPENAI_SECRET_KEY')
+    process.exit()
+}
+
 // Set up session.
 const SESSION_FILE_PATH = './session.json'
 let sessionCfg
@@ -23,9 +29,7 @@ let selectedContacts = []
 
 // Instantiate new WhatsApp client.
 const client = new Client({ session: sessionCfg, restartOnAuthFail: true })
-
-// Log authenticating
-console.log('Authenticating...\n')
+console.log('Starting WhatsApp client...\n')
 
 // On QR code.
 client.on('qr', (qr) => {
@@ -38,25 +42,25 @@ client.on('qr', (qr) => {
 
 // On authentication.
 client.on('authenticated', (session) => {
-    console.log('Authentication successful.\n')
+    console.log('WhatsApp authentication successful.\n')
 
     // Set current session and write to file.
     sessionCfg = session
-    fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (err) {
-        if (err) {
-            console.error(err)
+    fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function (error) {
+        if (error) {
+            console.error(chalk.red('SESSION FAILURE'), error)
         }
     })
 })
 
 // On auth failure.
 client.on('auth_failure', message => {
-    console.error('AUTHENTICATION FAILURE', message)
+    console.error(chalk.red('WHATSAPP AUTHENTICATION FAILURE'), message)
 })
 
 // On client ready.
 client.on('ready', async () => {
-    console.log('Client is ready!\n')
+    console.log('Whatbot is ready!\n')
 
     // Get list of current chat instances.
     client.getChats().then((chats) => {
@@ -93,10 +97,10 @@ client.on('ready', async () => {
                 defaultPrompt = answers.prompt
                 // Set selected contacts array.
                 selectedContacts = answers.contacts
-                console.log('\nAI activated. Listening for messages...\n')
+                console.log(chalk.greenBright('\nAI activated. Listening for messages...\n'))
             })
             .catch(error => {
-                console.error('PROMPT FAILURE', error)
+                console.error(chalk.red('PROMPT FAILURE'), error)
             })
     })
 })
@@ -164,7 +168,7 @@ client.on('message', async (message) => {
                 // Log reply.
                 console.log(myName + ':', chalk.blueBright(responseText))
             })
-            .catch((error) => console.error('GPT-3 REQUEST FAILURE', error))
+            .catch((error) => console.error(chalk.red('GPT-3 REQUEST FAILURE'), error))
 
     }
 })
