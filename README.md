@@ -1,6 +1,6 @@
 ## About The Project
 
-This is a basic chat bot for WhatsApp which uses the OpenAI API (GPT-3). It is written in JavaScript using Node.js.
+This is a basic GPT chat bot for WhatsApp which uses the OpenAI API. It is written in JavaScript using Node.js.
 
 
 ### Prerequisites
